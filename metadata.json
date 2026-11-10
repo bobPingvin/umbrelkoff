@@ -1,0 +1,6 @@
+{
+  "name": "Фонд Надежды и Заботы: Umbrella & Murkoff",
+  "description": "Объединённый благотворительный портал гуманитарных программ Umbrella Health Initiative и Murkoff Rebirth Care: забота о здоровье, душевном покое и будущем каждого человека.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

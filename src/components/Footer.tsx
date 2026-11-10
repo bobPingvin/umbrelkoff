@@ -1,0 +1,76 @@
+import React from 'react';
+import { UmbrellaLogo } from './UmbrellaLogo';
+import { MurkoffLogo } from './MurkoffLogo';
+import { Lock } from 'lucide-react';
+
+interface FooterProps {
+  onOpenSecretTerminal: () => void;
+  onLockClick?: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onOpenSecretTerminal, onLockClick }) => {
+  const handleLockClick = () => {
+    if (onLockClick) {
+      onLockClick();
+    }
+    onOpenSecretTerminal();
+  };
+
+  return (
+    <footer className="bg-stone-950 text-stone-400 text-xs border-t border-stone-800">
+      <div className="flex flex-col lg:flex-row items-stretch border-b border-stone-800">
+        {/* Левая половина: Подвал Umbrella (Белый и красный) */}
+        <div className="lg:w-1/2 p-6 sm:p-8 lg:p-12 border-b lg:border-b-0 lg:border-r border-stone-800 bg-[#0e0e11]">
+          <div className="flex items-center gap-3 mb-4">
+            <UmbrellaLogo size={40} />
+            <div>
+              <span className="font-display font-bold text-stone-200 text-sm block">
+                Международный Фонд Здоровья Umbrella
+              </span>
+              <span className="text-[11px] text-rose-400 font-mono">Наше призвание — сама жизнь</span>
+            </div>
+          </div>
+          <p className="text-stone-400 text-xs leading-relaxed mb-4 max-w-md">
+            Мы строим мир, свободный от болезней, слабости и клеточного старения. Бесплатные вакцинационные пункты в Раккун-Сити открыты круглосуточно.
+          </p>
+          <div className="space-y-1.5 text-[11px] text-stone-500 font-mono">
+            <div>Лицензия био-фармацевтического надзора № 1998-Т-АЛЬФА</div>
+            <div>Центральная лаборатория: Медицинский комплекс в лесах Арклей</div>
+            <div>Горячая линия доверия: 8-800-UMB-LIFE</div>
+          </div>
+        </div>
+
+        {/* Правая половина: Подвал Murkoff (Тёмно-зелёный болотный с шумом) */}
+        <div className="lg:w-1/2 p-6 sm:p-8 lg:p-12 murkoff-swamp-bg text-stone-300">
+          <div className="flex items-center gap-3 mb-4">
+            <MurkoffLogo size={40} className="ring-2 ring-[#82e29e]" />
+            <div>
+              <span className="font-display font-bold text-white text-sm block">
+                Благотворительный Фонд Murkoff · 1959 г.
+              </span>
+              <span className="text-[11px] text-[#82e29e] font-mono">Забота, душевный покой и социальная гармония</span>
+            </div>
+          </div>
+          <p className="text-stone-300 text-xs leading-relaxed mb-4 max-w-md">
+            Мы протягиваем руку помощи каждому, кто остался без поддержки. Вместе с доктором Истерманом мы помогаем преодолеть жизненные трудности и обрести душевное спокойствие в заботливом окружении.
+          </p>
+          <div className="space-y-1.5 text-[11px] text-stone-300 font-mono">
+            <div>Санаторный комплекс: Загородный корпус Синьявского, Сектор С-1</div>
+            <div>Кураторы программ: Филлис Футтерман, офицер Лиланд Койл, Франко Барби</div>
+            <div>Горячая линия поддержки: 8-800-MRK-1959</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Нижняя полоса */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col items-center justify-center text-center gap-2 text-[11px]">
+        <div className="text-stone-500 text-center">
+          © 1959–2026 Объединённый Гуманитарный Комитет Umbrella & Murkoff. Все права на благотворительные программы защищены.
+        </div>
+        <div className="flex items-center justify-center gap-2 text-stone-500">
+          <span>Политика благотворительной заботы</span>
+        </div>
+      </div>
+    </footer>
+  );
+};

@@ -13,9 +13,9 @@ export const UmbrellaLogo: React.FC<UmbrellaLogoProps> = ({ className = '', size
   const rCtrl = 34; // Control radius to create the inward concave curve of umbrella canopy
 
   // 8 scalloped umbrella segments (4 red, 4 white)
-  // Wedge 0 is TOP (RED), centered at 90 deg (12 o'clock)
+  // Rotated with an additional dynamic offset so it has a natural, non-orthogonal angle
   const segments = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
-    const angleMidDeg = 90 - i * 45;
+    const angleMidDeg = 90 - 45 - i * 45;
     const angleStartDeg = angleMidDeg + 22.5;
     const angleEndDeg = angleMidDeg - 22.5;
 

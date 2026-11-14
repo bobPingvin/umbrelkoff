@@ -11,10 +11,8 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({ enabled = true }) =>
   const [side, setSide] = useState<'umbrella' | 'murkoff'>('umbrella');
   const [isHoveringClickable, setIsHoveringClickable] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-
-  // Use ref to avoid unnecessary re-renders during high-frequency mouse moves
-  const isMouseDownRef = useRef(false);
   const [isMouseDown, setIsMouseDown] = useState(false);
+  const isVisibleRef = useRef(false);
 
   useEffect(() => {
     if (!enabled) {
@@ -22,48 +20,41 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({ enabled = true }) =>
       return;
     }
 
-    // Only apply on devices with fine pointer (mouse/trackpad), not touch
     const mediaQuery = window.matchMedia('(pointer: fine)');
     if (!mediaQuery.matches) return;
 
     document.body.classList.add('has-custom-cursor');
 
     const handleMouseMove = (e: MouseEvent) => {
-      // Direct 1:1 hardware coordinate update
       setPos({ x: e.clientX, y: e.clientY });
-      if (!isVisible) setIsVisible(true);
+      if (!isVisibleRef.current) {
+        isVisibleRef.current = true;
+        setIsVisible(true);
+      }
 
-      // Check which half of the screen
       const screenMid = window.innerWidth / 2;
-      const currentSide = e.clientX < screenMid ? 'umbrella' : 'murkoff';
-      setSide(currentSide);
+      setSide(e.clientX < screenMid ? 'umbrella' : 'murkoff');
 
-      // Check if hovering clickable elements
       const target = e.target as HTMLElement | null;
       if (target) {
         const isClickable = Boolean(
           target.closest('button') ||
-          target.closest('a') ||
-          target.closest('input') ||
-          target.closest('select') ||
-          target.closest('textarea') ||
-          target.closest('label')
+            target.closest('a') ||
+            target.closest('input') ||
+            target.closest('select') ||
+            target.closest('textarea') ||
+            target.closest('label')
         );
         setIsHoveringClickable(isClickable);
       }
     };
 
-    const handleMouseDown = () => {
-      isMouseDownRef.current = true;
-      setIsMouseDown(true);
+    const handleMouseDown = () => setIsMouseDown(true);
+    const handleMouseUp = () => setIsMouseDown(false);
+    const handleMouseLeave = () => {
+      isVisibleRef.current = false;
+      setIsVisible(false);
     };
-
-    const handleMouseUp = () => {
-      isMouseDownRef.current = false;
-      setIsMouseDown(false);
-    };
-
-    const handleMouseLeave = () => setIsVisible(false);
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('mousedown', handleMouseDown, { passive: true });
@@ -77,9 +68,11 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({ enabled = true }) =>
       window.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [enabled, isVisible]);
+  }, [enabled]);
 
   if (!enabled || !isVisible) return null;
+
+  const isUmbrella = side === 'umbrella';
 
   return (
     <div
@@ -87,101 +80,96 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({ enabled = true }) =>
       style={{ pointerEvents: 'none' }}
       aria-hidden="true"
     >
-      {/* 
-        Position cursor instantly at exact mouse coordinates with NO transition delay.
-        This prevents coordinate lag and visual stutter that causes double-click sensations.
-      */}
       <div
         className="absolute pointer-events-none"
         style={{
           left: `${pos.x}px`,
           top: `${pos.y}px`,
-          transform: isMouseDown ? 'scale(0.96)' : 'scale(1)',
+          transform: isMouseDown ? 'scale(0.94)' : 'scale(1)',
           transformOrigin: 'top left',
           pointerEvents: 'none',
         }}
       >
-        {side === 'umbrella' ? (
-          /* =================== UMBRELLA CURSOR =================== */
-          /* Elegant silver arrow pointer with smooth rotating umbrella logo at base */
-          <div className="relative pointer-events-none">
-            {/* Precision silver/white arrowhead */}
+        <div className="relative pointer-events-none">
+          {/* Точная серебристо-белая стрелка курсора */}
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="block drop-shadow-[0_2px_4px_rgba(0,0,0,0.32)] pointer-events-none"
+            style={{ pointerEvents: 'none' }}
+          >
+            <defs>
+              <linearGradient id="umbrellaSilverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" />
+                <stop offset="60%" stopColor="#f1f5f9" />
+                <stop offset="100%" stopColor="#cbd5e1" />
+              </linearGradient>
+              <linearGradient id="murkoffSilverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" />
+                <stop offset="60%" stopColor="#ecfdf5" />
+                <stop offset="100%" stopColor="#bbf7d0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M3 2L10 20L13.5 13.5L20 10L3 2Z"
+              fill={isUmbrella ? 'url(#umbrellaSilverGrad)' : 'url(#murkoffSilverGrad)'}
+              stroke={isUmbrella ? '#1e293b' : '#14341e'}
+              strokeWidth="1.25"
+              strokeLinejoin="round"
+            />
+          </svg>
+
+          {/* Аккуратное декоративное кольцо и логотип с идеальным вращением вокруг геометрического центра */}
+          <div
+            className={`absolute left-[11px] top-[11px] w-7 h-7 flex items-center justify-center pointer-events-none transition-transform duration-200 ${
+              isHoveringClickable ? 'scale-110' : 'scale-100'
+            }`}
+          >
+            {/* Тонкое встречно-вращающееся орбитальное обрамление (спокойный фирменный декор) */}
             <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
+              width="26"
+              height="26"
+              viewBox="0 0 26 26"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] pointer-events-none"
-              style={{ pointerEvents: 'none' }}
+              className="absolute inset-0 m-auto block animate-[spin_10s_linear_infinite_reverse] pointer-events-none"
             >
-              <defs>
-                <linearGradient id="umbrellaSilverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff" />
-                  <stop offset="60%" stopColor="#f1f5f9" />
-                  <stop offset="100%" stopColor="#cbd5e1" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M3 2L10 20L13.5 13.5L20 10L3 2Z"
-                fill="url(#umbrellaSilverGrad)"
-                stroke="#1e293b"
+              <circle
+                cx="13"
+                cy="13"
+                r="11"
+                stroke={isUmbrella ? 'rgba(225, 29, 72, 0.28)' : 'rgba(130, 226, 158, 0.35)'}
+                strokeWidth="0.9"
+              />
+              <circle
+                cx="13"
+                cy="13"
+                r="11"
+                stroke={isUmbrella ? 'rgba(225, 29, 72, 0.7)' : 'rgba(130, 226, 158, 0.8)'}
                 strokeWidth="1.25"
-                strokeLinejoin="round"
+                strokeLinecap="round"
+                strokeDasharray="10 59"
+              />
+              <circle
+                cx="13"
+                cy="2"
+                r="1.2"
+                fill={isUmbrella ? '#e11d48' : '#82e29e'}
               />
             </svg>
 
-            {/* Rotating Umbrella logo at base of arrow */}
-            <div
-              className={`absolute left-3 top-3 pointer-events-none ${
-                isHoveringClickable ? 'animate-[spin_2s_linear_infinite]' : 'animate-[spin_4s_linear_infinite]'
-              } drop-shadow-[0_1px_3px_rgba(225,29,72,0.35)]`}
-              style={{ pointerEvents: 'none' }}
-            >
-              <UmbrellaLogo size={16} />
+            {/* Точный квадратный 16x16 контейнер без строчного смещения — вращение строго вокруг центра */}
+            <div className="w-4 h-4 flex items-center justify-center leading-none origin-center animate-[spin_6s_linear_infinite] pointer-events-none">
+              {isUmbrella ? (
+                <UmbrellaLogo size={16} className="block drop-shadow-none transition-none" />
+              ) : (
+                <MurkoffLogo size={16} className="block shadow-none transition-none" />
+              )}
             </div>
           </div>
-        ) : (
-          /* =================== MURKOFF INNOCENT CHARITY CURSOR =================== */
-          /* Clean, friendly silver arrow with subtle emerald tint and gentle rotating Murkoff seal at base */
-          <div className="relative pointer-events-none">
-            {/* Friendly precision silver/mint arrowhead matching Umbrella's elegance */}
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] pointer-events-none"
-              style={{ pointerEvents: 'none' }}
-            >
-              <defs>
-                <linearGradient id="murkoffSilverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff" />
-                  <stop offset="60%" stopColor="#ecfdf5" />
-                  <stop offset="100%" stopColor="#bbf7d0" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M3 2L10 20L13.5 13.5L20 10L3 2Z"
-                fill="url(#murkoffSilverGrad)"
-                stroke="#14341e"
-                strokeWidth="1.25"
-                strokeLinejoin="round"
-              />
-            </svg>
-
-            {/* Rotating Murkoff 1959 emblem at base of arrow - harmless, neat and authentic */}
-            <div
-              className={`absolute left-3 top-3 pointer-events-none ${
-                isHoveringClickable ? 'animate-[spin_2s_linear_infinite]' : 'animate-[spin_4s_linear_infinite]'
-              } drop-shadow-[0_1px_3px_rgba(130,226,158,0.4)]`}
-              style={{ pointerEvents: 'none' }}
-            >
-              <MurkoffLogo size={16} />
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

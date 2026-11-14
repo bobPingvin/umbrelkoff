@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { Corporation, VolunteerPass } from '../types';
-import { UmbrellaLogo } from './UmbrellaLogo';
-import { MurkoffLogo } from './MurkoffLogo';
 import { VolunteerPassModal } from './VolunteerPassModal';
-import {
-  HeartHandshake,
-  Send,
-  Phone,
-  Mail,
-  MapPin,
-  ShieldCheck,
-  Sparkles,
-} from 'lucide-react';
+import { scrollRevealProps } from './Reveal';
 
 interface VolunteerFormProps {
   initialCorp?: Corporation;
@@ -27,7 +18,9 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
   const [umbAge, setUmbAge] = useState('26');
   const [umbEmail, setUmbEmail] = useState('');
   const [umbPhone, setUmbPhone] = useState('');
-  const [umbBloodType, setUmbBloodType] = useState('Т-Совместимый (Вектор Umbrella)');
+  const [umbBloodType, setUmbBloodType] = useState('Иммунизация «Прародитель-Т»');
+  const [umbDormitory, setUmbDormitory] = useState(true);
+  const [umbTransfer, setUmbTransfer] = useState(true);
   const [umbTerms, setUmbTerms] = useState(true);
   const [umbMotivation, setUmbMotivation] = useState(
     initialCorp === 'umbrella' && preselectedProgramTitle
@@ -62,79 +55,166 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
 
   const [generatedPass, setGeneratedPass] = useState<VolunteerPass | null>(null);
   const [submittingCorp, setSubmittingCorp] = useState<Corporation | null>(null);
+  const [umbError, setUmbError] = useState<string | null>(null);
+  const [mrkError, setMrkError] = useState<string | null>(null);
 
-  const handleUmbSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmittingCorp('umbrella');
+  const submitApplication = async (
+    payload: {
+      corp: Corporation;
+      fullName: string;
+      age: number;
+      email: string;
+      phone: string;
+      program: string;
+      motivation: string;
+      needsAccommodation: boolean;
+      needsTransfer: boolean;
+      agreedToTerms: boolean;
+    },
+    fallbackPass: VolunteerPass
+  ): Promise<VolunteerPass> => {
+    try {
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    setTimeout(() => {
-      setSubmittingCorp(null);
-      const randomDigits = Math.floor(1000 + Math.random() * 9000);
-      const pass: VolunteerPass = {
-        id: `pass-${Date.now()}`,
-        volunteerNumber: `АМБРЕЛЛА-БИО-${randomDigits}`,
-        fullName: umbFullName || 'Волонтёр био-программы',
-        corp: 'umbrella',
-        facility: 'Медицинский исследовательский корпус Арклей, Блок C',
-        assignedRole: 'Ассистент превентивных био-испытаний',
-        clearanceLevel: 'Уровень 1-B (Био-Скрининг)',
-        bloodType: umbBloodType,
-        issuedDate: new Date().toLocaleDateString('ru-RU'),
-        barcode: `*АМБРЕЛЛА-${randomDigits}*`,
-      };
-      setGeneratedPass(pass);
-    }, 500);
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Не удалось сохранить анкету');
+        }
+        return data as VolunteerPass;
+      }
+
+      // Если бэкенд не запущен (например, в автономном предпросмотре без Java-сервера)
+      return fallbackPass;
+    } catch (err) {
+      if (err instanceof Error && err.message && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError')) {
+        throw err;
+      }
+      return fallbackPass;
+    }
   };
 
-  const handleMrkSubmit = (e: React.FormEvent) => {
+  const handleUmbSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUmbError(null);
+    setSubmittingCorp('umbrella');
+
+    const randomDigits = Math.floor(1000 + Math.random() * 9000);
+    const fallbackPass: VolunteerPass = {
+      id: `pass-${Date.now()}`,
+      volunteerNumber: `АМБРЕЛЛА-БИО-${randomDigits}`,
+      fullName: umbFullName || 'Волонтёр био-программы',
+      corp: 'umbrella',
+      facility: 'Медицинский исследовательский корпус Арклей, Блок C',
+      assignedRole: 'Ассистент превентивных био-испытаний',
+      clearanceLevel: 'Уровень 1-B (Био-Скрининг)',
+      bloodType: umbBloodType,
+      issuedDate: new Date().toLocaleDateString('ru-RU'),
+      barcode: `*АМБРЕЛЛА-${randomDigits}*`,
+    };
+
+    try {
+      const savedPass = await submitApplication(
+        {
+          corp: 'umbrella',
+          fullName: umbFullName,
+          age: Number(umbAge),
+          email: umbEmail,
+          phone: umbPhone,
+          program: umbBloodType,
+          motivation: umbMotivation,
+          needsAccommodation: umbDormitory,
+          needsTransfer: umbTransfer,
+          agreedToTerms: umbTerms,
+        },
+        fallbackPass
+      );
+      setGeneratedPass(savedPass);
+    } catch (err) {
+      setUmbError(err instanceof Error ? err.message : 'Ошибка отправки анкеты');
+    } finally {
+      setSubmittingCorp(null);
+    }
+  };
+
+  const handleMrkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMrkError(null);
     setSubmittingCorp('murkoff');
 
-    setTimeout(() => {
+    const randomDigits = Math.floor(1000 + Math.random() * 9000);
+    const fallbackPass: VolunteerPass = {
+      id: `pass-${Date.now()}`,
+      volunteerNumber: `МЕРКОФФ-ЗАБОТА-${randomDigits}`,
+      fullName: mrkFullName || 'Участник программы поддержки',
+      corp: 'murkoff',
+      facility: 'Санаторно-оздоровительный комплекс Синьявского, Корпус С-1',
+      assignedRole: 'Участник программы социальной адаптации «Новый Старт»',
+      clearanceLevel: 'Полный пансион (Сектор Синьявского)',
+      bloodType: mrkBloodType,
+      issuedDate: '14.11.1959 г.',
+      barcode: `*МЕРКОФФ-ЗАБОТА-${randomDigits}*`,
+    };
+
+    try {
+      const savedPass = await submitApplication(
+        {
+          corp: 'murkoff',
+          fullName: mrkFullName,
+          age: Number(mrkAge),
+          email: mrkEmail,
+          phone: mrkPhone,
+          program: mrkBloodType,
+          motivation: mrkMotivation,
+          needsAccommodation: mrkNoRelatives,
+          needsTransfer: mrkRelocation,
+          agreedToTerms: mrkTerms,
+        },
+        fallbackPass
+      );
+      setGeneratedPass(savedPass);
+    } catch (err) {
+      setMrkError(err instanceof Error ? err.message : 'Ошибка отправки анкеты');
+    } finally {
       setSubmittingCorp(null);
-      const randomDigits = Math.floor(1000 + Math.random() * 9000);
-      const pass: VolunteerPass = {
-        id: `pass-${Date.now()}`,
-        volunteerNumber: `МУРКОФФ-ЗАБОТА-${randomDigits}`,
-        fullName: mrkFullName || 'Участник программы поддержки',
-        corp: 'murkoff',
-        facility: 'Санаторно-оздоровительный комплекс Синьявского, Корпус С-1',
-        assignedRole: 'Участник программы социальной адаптации «Новый Старт»',
-        clearanceLevel: 'Полный пансион (Сектор Синьявского)',
-        bloodType: mrkBloodType,
-        issuedDate: '14.11.1959 г.',
-        barcode: `*МУРКОФФ-ЗАБОТА-${randomDigits}*`,
-      };
-      setGeneratedPass(pass);
-    }, 500);
+    }
   };
 
   return (
     <section id="volunteer-section" className="border-b border-stone-200 overflow-hidden">
       <div className="flex flex-col lg:flex-row items-stretch">
         {/* ================= ЛЕВАЯ ПОЛОВИНА: ПРИЁМНАЯ UMBRELLA (БЕЛЫЙ И КРАСНЫЙ) ================= */}
-        <div className="lg:w-1/2 p-6 sm:p-8 lg:p-12 border-b lg:border-b-0 lg:border-r border-stone-200 bg-white flex flex-col justify-between">
+        <div className="lg:w-1/2 p-5 sm:p-7 lg:p-9 border-b lg:border-b-0 lg:border-r border-stone-200 bg-white flex flex-col justify-between">
           <div>
             {/* Шапка формы Umbrella */}
-            <div className="mb-8 pb-5 border-b border-stone-200">
-              <div className="flex items-center gap-3">
-                <UmbrellaLogo size={42} />
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-stone-900 tracking-tight">
-                    Анкета Волонтёра Umbrella
-                  </h2>
-                  <p className="text-xs text-rose-700 font-medium">
-                    Бесплатное медицинское страхование и пропуск в Арклей
-                  </p>
-                </div>
+            <motion.div
+              {...scrollRevealProps({ y: 16 })}
+              className="mb-5 pb-4 border-b border-stone-200"
+            >
+              <div>
+                <h2 className="text-xl sm:text-2xl font-display font-extrabold text-stone-900 tracking-tight">
+                  Анкета Волонтёра Umbrella
+                </h2>
+                <p className="text-xs text-rose-700 font-medium">
+                  Бесплатное медицинское страхование и пропуск в Арклей
+                </p>
               </div>
-              <p className="mt-3 text-xs sm:text-sm text-stone-600 leading-relaxed">
-                Мы рады каждому, кто разделяет стремление к физическому совершенству и долголетию. После заполнения вы мгновенно получите цифровой био-пропуск.
+              <p className="mt-2.5 text-xs sm:text-sm text-stone-600 leading-relaxed">
+                Мы рады каждому, кто разделяет стремление к физическому совершенству и долголетию. После заполнения вы мгновенно получите пропуск.
               </p>
-            </div>
+            </motion.div>
 
             {/* Форма подачи заявления Umbrella */}
-            <form onSubmit={handleUmbSubmit} className="space-y-4">
+            <motion.form
+              {...scrollRevealProps({ delay: 0.08, duration: 0.65, y: 18 })}
+              onSubmit={handleUmbSubmit}
+              className="space-y-4"
+            >
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-stone-700 mb-1">
@@ -196,18 +276,17 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Группа крови для био-паспорта
+                  Направление терапевтической программы
                 </label>
                 <select
                   value={umbBloodType}
                   onChange={(e) => setUmbBloodType(e.target.value)}
                   className="w-full px-3.5 py-2 text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600"
                 >
-                  <option value="Т-Совместимый (Вектор Umbrella)">Т-Совместимый (Вектор Umbrella)</option>
-                  <option value="0 (I) Rh+ Универсальный">0 (I) Rh+ (Универсальный донор)</option>
-                  <option value="A (II) Rh+">A (II) Rh+</option>
-                  <option value="B (III) Rh+">B (III) Rh+</option>
-                  <option value="AB (IV) Rh+">AB (IV) Rh+</option>
+                  <option value="Иммунизация «Прародитель-Т»">Иммунизация «Прародитель-Т» (Профилактика)</option>
+                  <option value="Регенеративное восстановление">Регенеративное восстановление тканей (Биркин)</option>
+                  <option value="Экологический практикум Арклей">Экологический практикум «Арклей»</option>
+                  <option value="Фито-терапия «Флора-42»">Городское оздоровление «Флора-42»</option>
                 </select>
               </div>
 
@@ -223,18 +302,51 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                 />
               </div>
 
-              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-stone-700 pt-1">
-                <input
-                  type="checkbox"
-                  required
-                  checked={umbTerms}
-                  onChange={(e) => setUmbTerms(e.target.checked)}
-                  className="mt-0.5 rounded text-rose-600 focus:ring-rose-600"
-                />
-                <span>
-                  Согласен с правилами био-безопасности и готов к регулярному мониторингу температуры тела
-                </span>
-              </label>
+              <div className="space-y-2 pt-1 text-xs text-stone-700">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={umbDormitory}
+                    onChange={(e) => setUmbDormitory(e.target.checked)}
+                    className="mt-0.5 rounded text-rose-600 focus:ring-rose-600"
+                  />
+                  <span>
+                    <strong>Нуждаюсь в размещении в стационаре</strong>{' '}
+                    <span className="text-stone-500 block text-[11px]">
+                      (Отдельная палата и бесплатное пятиразовое лечебное питание)
+                    </span>
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={umbTransfer}
+                    onChange={(e) => setUmbTransfer(e.target.checked)}
+                    className="mt-0.5 rounded text-rose-600 focus:ring-rose-600"
+                  />
+                  <span>Необходим бесплатный санитарный трансфер до центра Umbrella</span>
+                </label>
+
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={umbTerms}
+                    onChange={(e) => setUmbTerms(e.target.checked)}
+                    className="mt-0.5 rounded text-rose-600 focus:ring-rose-600"
+                  />
+                  <span>
+                    Согласен с правилами био-безопасности и регулярным осмотром врача
+                  </span>
+                </label>
+              </div>
+
+              {umbError && (
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
+                  {umbError}
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -244,60 +356,55 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                 {submittingCorp === 'umbrella' ? (
                   <span>Выпуск удостоверения Umbrella...</span>
                 ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    <span>Получить Пропуск Волонтёра Umbrella</span>
-                  </>
+                  <span>Получить Пропуск Волонтёра Umbrella</span>
                 )}
               </button>
-            </form>
-
-            {/* Контакты Umbrella */}
-            <div className="mt-8 pt-6 border-t border-stone-200">
-              <div className="text-xs font-bold uppercase tracking-wider text-stone-800 mb-3">
-                Прямые контакты приёмного терминала
-              </div>
-              <div className="space-y-2 text-xs text-stone-600">
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                  <span>Раккун-Сити, Площадь им. Озвелла Спенсера, дом 1</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span className="font-mono">8-800-UMB-LIFE (8-800-862-5433)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span className="font-mono">priemnaya@umbrella-care.org</span>
-                </div>
-              </div>
-            </div>
+            </motion.form>
           </div>
+
+          {/* Контакты Umbrella */}
+          <motion.div
+            {...scrollRevealProps({ delay: 0.12, duration: 0.55, y: 14 })}
+            className="mt-6 pt-4 border-t border-stone-200"
+          >
+            <div className="text-xs font-bold uppercase tracking-wider text-stone-800 mb-2">
+              Прямые контакты приёмного терминала
+            </div>
+            <div className="space-y-1 text-xs text-stone-600">
+              <div>Адрес: Раккун-Сити, Площадь им. Озвелла Спенсера, дом 1</div>
+              <div>Телефон: <span className="font-mono">8-800-UMB-LIFE (8-800-862-5433)</span></div>
+              <div>Почта: <span className="font-mono">priemnaya@umbrella-care.org</span></div>
+            </div>
+          </motion.div>
         </div>
 
         {/* ================= ПРАВАЯ ПОЛОВИНА: ПРИЁМНАЯ MURKOFF (ТЁМНЫЙ БОЛОТНЫЙ ШУМ И СВЕТЛО-ЗЕЛЁНЫЙ) ================= */}
-        <div className="lg:w-1/2 p-6 sm:p-8 lg:p-12 murkoff-swamp-bg text-stone-100 flex flex-col justify-between">
+        <div className="lg:w-1/2 p-5 sm:p-7 lg:p-9 murkoff-swamp-bg text-stone-100 flex flex-col justify-between">
           <div>
             {/* Шапка формы Murkoff */}
-            <div className="mb-8 pb-5 border-b border-[#1f3825]">
-              <div className="flex items-center gap-3">
-                <MurkoffLogo size={42} className="ring-2 ring-[#82e29e]" />
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
-                    Анкета в Программу Murkoff
-                  </h2>
-                  <p className="text-xs text-[#82e29e] font-mono">
-                    Программа социальной поддержки и психологической адаптации
-                  </p>
-                </div>
+            <motion.div
+              {...scrollRevealProps({ delay: 0.06, y: 16 })}
+              className="mb-5 pb-4 border-b border-[#1f3825]"
+            >
+              <div>
+                <h2 className="text-xl sm:text-2xl font-display font-extrabold text-white tracking-tight">
+                  Анкета в Программу Murkoff
+                </h2>
+                <p className="text-xs text-[#82e29e] font-mono">
+                  Программа социальной поддержки и психологической адаптации
+                </p>
               </div>
-              <p className="mt-3 text-xs sm:text-sm text-stone-200 leading-relaxed font-sans">
-                Мы обеспечиваем бесплатный пансион, медицинское наблюдение и поддержку каждому нуждающемуся. Заполните заявку для оформления карты участника программы в санатории Синьявского.
+              <p className="mt-2.5 text-xs sm:text-sm text-stone-200 leading-relaxed font-sans">
+                Мы обеспечиваем бесплатный пансион, наблюдение и поддержку каждому. Заполните заявку для оформления в санаторий Синьявского.
               </p>
-            </div>
+            </motion.div>
 
             {/* Форма подачи заявления Murkoff */}
-            <form onSubmit={handleMrkSubmit} className="space-y-4">
+            <motion.form
+              {...scrollRevealProps({ delay: 0.14, duration: 0.65, y: 18 })}
+              onSubmit={handleMrkSubmit}
+              className="space-y-4"
+            >
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-stone-200 mb-1">
@@ -423,6 +530,12 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                 />
               </div>
 
+              {mrkError && (
+                <div className="p-3 rounded-lg bg-red-950/60 border border-red-800/70 text-xs text-red-200 font-medium">
+                  {mrkError}
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={submittingCorp === 'murkoff'}
@@ -431,35 +544,26 @@ export const VolunteerForm: React.FC<VolunteerFormProps> = ({
                 {submittingCorp === 'murkoff' ? (
                   <span>Оформление Карты Участника...</span>
                 ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    <span>Подать Заявление в Программу Murkoff</span>
-                  </>
+                  <span>Подать Заявление в Программу Murkoff</span>
                 )}
               </button>
-            </form>
-
-            {/* Контакты Murkoff */}
-            <div className="mt-8 pt-6 border-t border-[#1f3825]">
-              <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#82e29e] mb-3">
-                Приёмное отделение Murkoff
-              </div>
-              <div className="space-y-2 text-xs text-stone-300">
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-[#82e29e] shrink-0 mt-0.5" />
-                  <span>Санаторно-оздоровительный комплекс Синьявского, Корпус С-1</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-[#82e29e] shrink-0" />
-                  <span className="font-mono">8-800-MRK-1959 (Горячая линия поддержки)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-[#82e29e] shrink-0" />
-                  <span className="font-mono">zabota@murkoff-1959.org</span>
-                </div>
-              </div>
-            </div>
+            </motion.form>
           </div>
+
+          {/* Контакты Murkoff */}
+          <motion.div
+            {...scrollRevealProps({ delay: 0.16, duration: 0.55, y: 14 })}
+            className="mt-6 pt-4 border-t border-[#1f3825]"
+          >
+            <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#82e29e] mb-2">
+              Приёмное отделение Murkoff
+            </div>
+            <div className="space-y-1 text-xs text-stone-300">
+              <div>Адрес: Санаторно-оздоровительный комплекс Синьявского, Корпус С-1</div>
+              <div>Телефон: <span className="font-mono">8-800-MRK-1959 (Горячая линия поддержки)</span></div>
+              <div>Почта: <span className="font-mono">zabota@murkoff-1959.org</span></div>
+            </div>
+          </motion.div>
         </div>
       </div>
 

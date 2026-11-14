@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://YOUR-JAVA-BACKEND.onrender.com/api/$1"
+    }
+  ]
+}

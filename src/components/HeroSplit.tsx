@@ -1,7 +1,10 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { UmbrellaLogo } from './UmbrellaLogo';
 import { MurkoffLogo } from './MurkoffLogo';
-import { ShieldCheck, Radio } from 'lucide-react';
+import { REVEAL_EASE } from './Reveal';
+import umbrellaHeroImg from '../assets/images/umbrella_charity_hero_1794192792824.jpg';
+import murkoffHeroImg from '../assets/images/murkoff_care_hero_1794192792477.jpg';
 
 interface HeroSplitProps {
   splitMode: 'split' | 'umbrella' | 'murkoff';
@@ -30,18 +33,20 @@ export const HeroSplit: React.FC<HeroSplitProps> = ({
 
   return (
     <section className="relative overflow-hidden border-b border-stone-200">
-      <div className="flex flex-col lg:flex-row items-stretch min-h-[700px] transition-all duration-500 ease-in-out">
+      <div className="flex flex-col lg:flex-row items-stretch transition-all duration-500 ease-in-out">
         {/* ===================== ЛЕВАЯ ПОЛОВИНА: UMBRELLA (БЕЛЫЙ И КРАСНЫЙ) ===================== */}
         <div
-          className={`${umbrellaWidthClass} transition-all duration-500 ease-in-out bg-white border-b lg:border-b-0 lg:border-r border-stone-200 p-6 sm:p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden`}
+          className={`${umbrellaWidthClass} transition-all duration-500 ease-in-out bg-white border-b lg:border-b-0 lg:border-r border-stone-200 p-5 sm:p-7 lg:p-9 flex flex-col justify-between relative overflow-hidden`}
         >
-          {/* Фоновый мягкий оттенок */}
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
-
           {/* Верхняя панель Umbrella */}
-          <div className="flex items-center justify-between gap-4 mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.04, ease: REVEAL_EASE }}
+            className="flex items-center justify-between gap-4 mb-4"
+          >
             <div className="flex items-center gap-3">
-              <UmbrellaLogo size={58} />
+              <UmbrellaLogo size={54} />
               <div>
                 <span className="text-xs uppercase tracking-wider font-bold text-rose-700 block">
                   Международный Гуманитарный Фонд
@@ -51,14 +56,18 @@ export const HeroSplit: React.FC<HeroSplitProps> = ({
                 </span>
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-stone-500">
-              <ShieldCheck className="w-4 h-4 text-rose-600" />
+            <div className="hidden sm:flex items-center text-xs text-stone-500 font-medium">
               <span>Основан в 1968 г.</span>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Основной контент Umbrella (выровненный по высоте с Murkoff) */}
-          <div className="space-y-4 my-auto">
+          {/* Основной контент Umbrella */}
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.12, ease: REVEAL_EASE }}
+            className="space-y-3.5"
+          >
             {/* Блок цитаты Umbrella (зеркально по высоте блоку Murkoff) */}
             <div className="p-4 sm:p-5 rounded-xl bg-white border-2 border-rose-200 shadow-sm">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-extrabold text-stone-900 tracking-tight text-balance leading-tight">
@@ -82,7 +91,7 @@ export const HeroSplit: React.FC<HeroSplitProps> = ({
               <div className="relative rounded-xl overflow-hidden border border-stone-200 shadow-sm bg-white group">
                 <div className="aspect-16/9 w-full overflow-hidden">
                   <img
-                    src="/src/assets/images/umbrella_charity_hero_1794192792824.jpg"
+                    src={umbrellaHeroImg}
                     alt="Дружелюбный медицинский центр фонда Umbrella в Раккун-Сити"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
@@ -96,10 +105,15 @@ export const HeroSplit: React.FC<HeroSplitProps> = ({
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Кнопки действий */}
-          <div className="mt-8 pt-4 border-t border-stone-200 flex flex-wrap items-center gap-3">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.22, ease: REVEAL_EASE }}
+            className="mt-5 pt-4 border-t border-stone-200 flex flex-wrap items-center gap-3"
+          >
             <button
               type="button"
               onClick={() => onSelectCorpForVolunteer('umbrella')}
@@ -113,20 +127,22 @@ export const HeroSplit: React.FC<HeroSplitProps> = ({
             >
               Изучить медицинские гранты
             </a>
-          </div>
+          </motion.div>
         </div>
 
         {/* ===================== ПРАВАЯ ПОЛОВИНА: MURKOFF (ТЁМНО-ЗЕЛЁНЫЙ, БОЛОТНО-ЗЕЛЁНЫЙ С ШУМОМ) ===================== */}
         <div
-          className={`${murkoffWidthClass} transition-all duration-500 ease-in-out murkoff-swamp-bg text-stone-100 p-6 sm:p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden`}
+          className={`${murkoffWidthClass} transition-all duration-500 ease-in-out murkoff-swamp-bg text-stone-100 p-5 sm:p-7 lg:p-9 flex flex-col justify-between relative overflow-hidden`}
         >
-          {/* Болотное свечение */}
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
-
           {/* Верхняя панель Murkoff */}
-          <div className="flex items-center justify-between gap-4 mb-6 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.1, ease: REVEAL_EASE }}
+            className="flex items-center justify-between gap-4 mb-4 relative z-10"
+          >
             <div className="flex items-center gap-3">
-              <MurkoffLogo size={58} className="ring-2 ring-[#82e29e]" />
+              <MurkoffLogo size={54} className="ring-2 ring-[#82e29e]" />
               <div>
                 <span className="text-xs uppercase tracking-wider font-bold text-[#82e29e] block font-mono">
                   Гуманитарная Миссия Перерождения · 1959 г.
@@ -136,19 +152,23 @@ export const HeroSplit: React.FC<HeroSplitProps> = ({
                 </span>
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-stone-300 font-mono">
-              <Radio className="w-3.5 h-3.5 text-[#82e29e] animate-pulse" />
+            <div className="hidden sm:flex items-center text-xs text-stone-300 font-mono">
               <span>Проект Тенева 2</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Основной контент Murkoff */}
-          <div className="space-y-4 my-auto relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.18, ease: REVEAL_EASE }}
+            className="space-y-3.5 relative z-10"
+          >
             {/* Цитата из Outlast Trials на болотно-зелёной карточке с шумом */}
             <div className="p-4 sm:p-5 rounded-xl murkoff-card-bg border-2 border-[#24462c] shadow-xl shadow-black/40">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-extrabold text-white tracking-tight text-balance leading-tight">
-                «Вы потеряны? Одиноки? Бедны? Озадачены?{' '}
-                <span className="text-[#82e29e] drop-shadow-[0_0_14px_rgba(130,226,158,0.4)] underline decoration-[#82e29e]/60 underline-offset-4">
+                «Вы потеряны? Одиноки? Бедны? Отчаяны?{' '}
+                <span className="text-[#82e29e] underline decoration-[#82e29e]/60 underline-offset-4">
                   ВЫ НУЖНЫ НАМ!!!
                 </span>»
               </h1>
@@ -166,7 +186,7 @@ export const HeroSplit: React.FC<HeroSplitProps> = ({
               <div className="relative rounded-xl overflow-hidden border border-[#24462c] shadow-md murkoff-card-bg group">
                 <div className="aspect-16/9 w-full overflow-hidden relative">
                   <img
-                    src="/src/assets/images/murkoff_care_hero_1794192792477.jpg"
+                    src={murkoffHeroImg}
                     alt="Уютная комната психологической поддержки фонда Murkoff"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter brightness-95"
                     referrerPolicy="no-referrer"
@@ -181,10 +201,15 @@ export const HeroSplit: React.FC<HeroSplitProps> = ({
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Кнопки действий: светло-зелёные (не салатовые) с текстурой шума */}
-          <div className="mt-8 pt-4 border-t border-[#1f3825] flex flex-wrap items-center gap-3 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.28, ease: REVEAL_EASE }}
+            className="mt-5 pt-4 border-t border-[#1f3825] flex flex-wrap items-center gap-3 relative z-10"
+          >
             <button
               type="button"
               onClick={() => onSelectCorpForVolunteer('murkoff')}
@@ -199,7 +224,7 @@ export const HeroSplit: React.FC<HeroSplitProps> = ({
             >
               Пройти тест: Какая программа вам подходит?
             </button>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

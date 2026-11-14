@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { MotionConfig } from 'motion/react';
 import { Header } from './components/Header';
 import { HeroSplit } from './components/HeroSplit';
 import { MetricsBar } from './components/MetricsBar';
@@ -8,9 +9,11 @@ import { VolunteerForm } from './components/VolunteerForm';
 import { QuizModal } from './components/QuizModal';
 import { SecretTerminalModal } from './components/SecretTerminalModal';
 import { Footer } from './components/Footer';
+import { NewsFeed } from './components/NewsFeed';
+import { FaqSection } from './components/FaqSection';
 import { CustomCursor } from './components/CustomCursor';
 import { Corporation, CharityProgram } from './types';
-import { MousePointer2, Radio } from 'lucide-react';
+import { Radio } from 'lucide-react';
 
 export default function App() {
   const [splitMode, setSplitMode] = useState<'split' | 'umbrella' | 'murkoff'>('split');
@@ -20,7 +23,6 @@ export default function App() {
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [isSecretTerminalOpen, setIsSecretTerminalOpen] = useState(false);
   const [secretTerminalTab, setSecretTerminalTab] = useState<'amelia' | 'bsaa' | 'waylon'>('amelia');
-  const [customCursorEnabled, setCustomCursorEnabled] = useState(true);
 
   // Секретный клавиатурный ритуал (полностью скрыт в интерфейсе)
   const [, setKeySequence] = useState<string>('');
@@ -126,7 +128,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900 flex flex-col font-sans selection:bg-rose-500/20 selection:text-rose-900 relative overflow-x-hidden">
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen bg-stone-50 text-stone-900 flex flex-col font-sans selection:bg-rose-500/20 selection:text-rose-900 relative overflow-x-clip">
       {/* Скрытый экранный эффект при успешном выполнении ритуала Амелии */}
       {isGlitching && (
         <div className="fixed inset-0 z-50 bg-red-950/90 mix-blend-difference flex flex-col items-center justify-center text-red-500 font-mono p-4 animate-pulse">
@@ -140,8 +143,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Easter Egg Custom Cursor */}
-      <CustomCursor enabled={customCursorEnabled} />
+      {/* Кастомный курсор */}
+      <CustomCursor enabled />
 
       {/* Чистая шапка сайта (без подозрительных элементов) */}
       <Header
@@ -172,6 +175,9 @@ export default function App() {
         {/* Гуманитарные программы */}
         <ProgramsGrid onApplyForProgram={handleApplyForProgram} />
 
+        {/* Гуманитарная хроника и позитивные новости */}
+        <NewsFeed />
+
         {/* Отзывы участников */}
         <TestimonialsSection />
 
@@ -180,6 +186,9 @@ export default function App() {
           initialCorp={selectedCorpForVolunteer}
           preselectedProgramTitle={selectedProgramTitle}
         />
+
+        {/* Справочный раздел с кнопкой вызова FAQ перед подвалом */}
+        <FaqSection />
       </main>
 
       {/* Спокойный благотворительный подвал */}
@@ -190,23 +199,6 @@ export default function App() {
         }}
         onLockClick={() => handleLogoClick('lock')}
       />
-
-      {/* Переключатель курсора (аккуратная маленькая кнопка) */}
-      <div className="fixed bottom-4 left-4 z-40 hidden md:block">
-        <button
-          type="button"
-          onClick={() => setCustomCursorEnabled(!customCursorEnabled)}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-mono border shadow-md transition-all ${
-            customCursorEnabled
-              ? 'bg-stone-900 text-stone-200 border-stone-700 hover:bg-black'
-              : 'bg-white text-stone-600 border-stone-300 hover:bg-stone-100'
-          }`}
-          title="Включить / выключить курсор"
-        >
-          <MousePointer2 className={`w-3.5 h-3.5 ${customCursorEnabled ? 'text-[#82e29e]' : 'text-stone-400'}`} />
-          <span>Курсор-пасхалка: {customCursorEnabled ? 'ВКЛ' : 'ВЫКЛ'}</span>
-        </button>
-      </div>
 
       {/* Интерактивный тест */}
       <QuizModal
@@ -221,6 +213,7 @@ export default function App() {
         onClose={() => setIsSecretTerminalOpen(false)}
         defaultTab={secretTerminalTab}
       />
-    </div>
+      </div>
+    </MotionConfig>
   );
 }

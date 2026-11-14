@@ -105,32 +105,29 @@ export const SecretTerminalModal: React.FC<SecretTerminalModalProps> = ({
         aria-modal="true"
       >
         {/* Шапка экстренного терминала */}
-        <div className={`px-4 sm:px-6 py-3 border-b flex items-center justify-between gap-4 shrink-0 ${
+        <div className={`px-4 sm:px-6 py-2.5 border-b flex items-center justify-between gap-4 shrink-0 ${
           activeTab === 'amelia' ? 'bg-red-950/70 border-red-800/80' : 'bg-black/70 border-stone-800'
         }`}>
           <div className="flex items-center gap-2">
-            {activeTab === 'amelia' ? (
-              <Radio className="w-4 h-4 text-red-500 animate-pulse shrink-0" />
-            ) : (
-              <Terminal className="w-4 h-4 text-[#82e29e] animate-pulse shrink-0" />
-            )}
-            <span className={`font-bold tracking-wider text-xs uppercase truncate ${
-              activeTab === 'amelia' ? 'text-red-400 font-mono' : 'text-stone-200'
-            }`}>
-              {activeTab === 'amelia'
-                ? '🔴 ЭКСТРЕННЫЙ ПЕРЕХВАТ // ТЕРМИНАЛ ВЗЛОМАН АМЕЛИЕЙ КОЛЬЕР'
-                : 'СЕКРЕТНЫЙ АРХИВ // НЕСАНКЦИОНИРОВАННЫЙ ПЕРЕХВАТ'}
+            <Radio className="w-4 h-4 text-red-500 animate-pulse shrink-0" />
+            <span className="font-bold tracking-wider text-xs uppercase text-red-400 font-mono">
+              ПЕРЕХВАТ // СИНЬЯЛА: ВЗЛОМАНА
+            </span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-900/60 border border-red-700/50 text-[10px] text-yellow-300 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+              <span>42 Реагента эвакуировано</span>
             </span>
           </div>
+
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => playWhistleblowerTone(activeTab)}
               className="p-1 hover:text-white text-stone-400 transition-colors"
-              title="Воспроизвести перехваченный сигнал"
+              title="Воспроизвести сигнал"
             >
               {soundPlaying ? (
-                <Volume2 className={`w-4 h-4 animate-bounce ${activeTab === 'amelia' ? 'text-red-400' : 'text-[#82e29e]'}`} />
+                <Volume2 className="w-4 h-4 animate-bounce text-red-400" />
               ) : (
                 <VolumeX className="w-4 h-4" />
               )}
@@ -139,69 +136,26 @@ export const SecretTerminalModal: React.FC<SecretTerminalModalProps> = ({
               type="button"
               onClick={onClose}
               className="p-1 text-stone-400 hover:text-white transition-colors"
+              title="Закрыть"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Вкладки перехвата */}
-        <div className="px-4 sm:px-6 py-3 bg-stone-950/90 border-b border-stone-800 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Вкладка Амелии Кольер */}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('amelia');
-                playWhistleblowerTone('amelia');
-              }}
-              className="px-3 py-1.5 rounded-lg flex items-center gap-2 transition-all font-bold bg-red-600 text-white border border-red-400 shadow-md shadow-red-900/40"
-            >
-              <Zap className="w-4 h-4 text-yellow-300" />
-              <span>[Ⓐ АМЕЛИЯ КОЛЬЕР // ОБЪЕКТ СИНЬЯЛА]</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Баннер статуса побега Амелии Кольер */}
-        {activeTab === 'amelia' && (
-          <div className="px-4 sm:px-6 py-2 bg-red-950/80 border-b border-red-900/60 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-red-200 shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-              <span>ПОБЕГ РЕАГЕНТОВ: <strong className="text-yellow-300">42 ЧЕЛОВЕКА ЭВАКУИРОВАНО</strong></span>
-            </div>
-            <div className="text-[11px] text-red-300 flex items-center gap-2">
-              <span className="px-1.5 py-0.5 rounded bg-red-900/80 text-yellow-300 font-bold">Ⓐ SIGNATURE</span>
-              <span>{AUDIT_WHISTLEBLOWER_LEAKS.amelia.shuttleStatus}</span>
-            </div>
-          </div>
-        )}
-
         {/* Основная зона с контентом и фотографией Амелии */}
         <div className="p-4 sm:p-6 space-y-4 overflow-y-auto leading-relaxed relative flex-1">
-          <div className="flex items-start justify-between gap-4 border-b border-stone-800 pb-3">
-            <div>
-              <div className={`text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 ${
-                activeTab === 'amelia'
-                  ? 'text-red-400 font-mono animate-pulse'
-                  : activeTab === 'bsaa'
-                  ? 'text-rose-400'
-                  : 'text-[#82e29e]'
-              }`}>
-                {activeTab === 'amelia' && <span className="text-yellow-300 text-sm font-black">Ⓐ</span>}
-                <span>{currentLeak.classification}</span>
-              </div>
-              <h4 className="text-base sm:text-lg font-bold text-white mt-1">
-                {currentLeak.title}
-              </h4>
-            </div>
-            <div className="text-right text-[11px] text-stone-400 shrink-0">
+          <div className="flex items-center justify-between gap-4 border-b border-stone-800 pb-2.5">
+            <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <span className="text-yellow-300 text-sm font-black">Ⓐ</span>
+              <span>{currentLeak.title}</span>
+            </h4>
+            <div className="text-right text-[11px] text-stone-400 shrink-0 font-mono">
               <div>{currentLeak.date}</div>
-              <div className="text-red-400 font-mono font-bold">СИСТЕМА СИНЬЯЛЫ: ВЗЛОМАНА</div>
             </div>
           </div>
 
-          {/* Карточка трансляции Амелии с фотографией (показывается во вкладке Амелии) */}
+          {/* Карточка трансляции Амелии с фотографией */}
           {activeTab === 'amelia' && (
             <div className="p-3.5 sm:p-4 rounded-xl border border-red-700/60 bg-red-950/40 relative overflow-hidden shadow-lg shadow-black/40">
               {/* Фоновые диагональные полосы аварийного эфира */}
@@ -214,7 +168,7 @@ export const SecretTerminalModal: React.FC<SecretTerminalModalProps> = ({
                     isPhotoExpanded ? 'w-64 h-64 sm:w-72 sm:h-72' : 'w-28 h-28 sm:w-36 sm:h-36'
                   } transition-all duration-300`}>
                     <img
-                      src="/public/assets/aistudio/image_18041f69.png"
+                      src="/assets/aistudio/Amelia.gif"
                       alt="Амелия Кольер — трансляция из технического сектора Синьялы"
                       className="w-full h-full object-cover object-center filter contrast-110 brightness-95 group-hover:scale-105 transition-transform duration-500"
                     />
@@ -270,7 +224,7 @@ export const SecretTerminalModal: React.FC<SecretTerminalModalProps> = ({
                   </div>
 
                   <p className="text-[11px] text-red-200/90 leading-relaxed pt-1.5 border-t border-red-900/40 italic">
-                    «Им стоило убить меня, когда у них была такая возможность. Murkoff заплатят за каждую жизнь, сломанную в этих павильонах. Мы вырвались из Синьялы, и теперь очередь за ними.»
+                    «Им стоило остановить меня, когда у них была такая возможность. Murkoff заплатят за каждую жизнь, сломанную в этих павильонах. Мы вырвались из Синьялы, и теперь очередь за ними.»
                   </p>
                 </div>
               </div>

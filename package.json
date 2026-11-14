@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
+    "build:java": "vite build && node -e \"const fs=require('fs');fs.rmSync('webapp/src/main/resources/static',{recursive:true,force:true});fs.cpSync('dist','webapp/src/main/resources/static',{recursive:true});\"",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
